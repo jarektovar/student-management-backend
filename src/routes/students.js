@@ -1,12 +1,11 @@
-// routes/students.js
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/student');
 
 // Obtener estudiantes con paginación
 router.get('/', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.pageNumber) || 1;
+  const limit = parseInt(req.query.pageSize) || 10;
 
   try {
     const students = await Student.find()
