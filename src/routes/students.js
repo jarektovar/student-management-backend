@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/student');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Obtener estudiantes con paginación
 router.get('/', async (req, res) => {
@@ -24,4 +26,30 @@ router.get('/', async (req, res) => {
   }
 });
 
+
+// Obtener un estudiante por ID
+router.get('/:id', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).send('Student not found');
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// Actualizar un estudiante por ID
+router.put('/:id', async (req, res) => {
+  try {
+    const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!student) {
+      return res.status(404).send('Student not found');
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 module.exports = router;
