@@ -22,12 +22,14 @@ const studentRoutes = require('./routes/students');
 const subjectRoutes = require('./routes/subjects');
 const courseRoutes = require('./routes/courses');
 const enrollmentRoutes = require('./routes/enrollments');
+const authRoutes = require('./routes/auth');
 
 // Usar rutas
 app.use('/api/estudiantes', studentRoutes);
 app.use('/api/asignaturas', subjectRoutes);
-app.use('/api/materias', courseRoutes); 
+app.use('/api/materias', courseRoutes);
 app.use('/api/inscripciones', enrollmentRoutes);
+app.use('/api/auth', authRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

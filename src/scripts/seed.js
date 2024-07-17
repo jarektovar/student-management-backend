@@ -3,10 +3,12 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
 const { faker } = require('@faker-js/faker');
+const bcrypt = require('bcrypt');
 
 dotenv.config();
 
 const Student = require('../models/student');
+const Auth = require('../models/auth');
 const Subject = require('../models/subject');
 const Course = require('../models/course');
 const Enrollment = require('../models/enrollment');
@@ -24,6 +26,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     await Enrollment.deleteMany({});
     await Faculty.deleteMany({});
     await Program.deleteMany({});
+    await Auth.deleteMany({});
     console.log('Previous data cleared');
 
     // Datos de ejemplo
@@ -51,31 +54,35 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     const insertedSubjects = await Subject.insertMany(subjects);
     console.log('Subjects inserted');
 
+    const photoDirectory = path.join(__dirname, '../routes/photos');
+    let photoFiles = [];
+    if (fs.existsSync(photoDirectory)) {
+      photoFiles = fs.readdirSync(photoDirectory).slice(0, 1000);
+    } else {
+      console.log(`Directory ${photoDirectory} does not exist. No photos will be added.`);
+    }
+
     const generatedDocuments = new Set();
-    const students = Array.from({ length: 20000 }, () => {
+    const students = Array.from({ length: 20000 }, (_, index) => {
       let numero_documento;
       do {
         numero_documento = faker.number.int({ min: 1000000000, max: 9999999999 }).toString();
       } while (generatedDocuments.has(numero_documento));
       generatedDocuments.add(numero_documento);
 
+      let photoBase64 = '';
+      if (index < photoFiles.length) {
+        const photoPath = path.join(photoDirectory, photoFiles[index]);
+        photoBase64 = fs.readFileSync(photoPath, { encoding: 'base64' });
+      }
+
       return {
         nombre_name: faker.person.firstName(),
         apellido: faker.person.lastName(),
         numero_documento,
-        programa_id: insertedPrograms[0]._id
+        programa_id: insertedPrograms[0]._id,
+        photo_estudiante: photoBase64
       };
-    });
-
-    const photoDirectory = path.join(__dirname, 'photos');
-    if (!fs.existsSync(photoDirectory)) {
-      fs.mkdirSync(photoDirectory);
-    }
-    const studentPhotos = fs.readdirSync(photoDirectory).slice(0, 1000);
-    studentPhotos.forEach((photo, index) => {
-      if (students[index]) {
-        students[index].photo_estudiante = path.join('photos', photo);
-      }
     });
 
     console.log('Inserting students...');
@@ -120,6 +127,23 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
     await Enrollment.insertMany(enrollments);
     console.log('Enrollments created');
+
+    // Crear usuarios con credenciales de administrador y estudiante
+    console.log('Creating users...');
+    const users = [
+      { hash_usuario: 'admin', hash_password: await bcrypt.hash('admin', 10), role: 'admin' },
+      { hash_usuario: 'student1', hash_password: await bcrypt.hash('student1', 10), role: 'student', estudiante_id: insertedStudents[0]._id }
+    ];
+
+    const additionalStudents = await Promise.all(insertedStudents.slice(1, 1000).map(async (student) => ({
+      hash_usuario: `student${student._id}`,
+      hash_password: await bcrypt.hash('password', 10),
+      role: 'student',
+      estudiante_id: student._id
+    })));
+
+    await Auth.insertMany([...users, ...additionalStudents]);
+    console.log('Users created');
 
     mongoose.connection.close();
   })
