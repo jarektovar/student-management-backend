@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+
 // Crear un nuevo programa
 router.post('/', async (req, res) => {
   const { nombre_programa, facultad_id } = req.body;

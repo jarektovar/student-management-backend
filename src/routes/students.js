@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/student');
-const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
 
 // Obtener estudiantes con paginación
 router.get('/', async (req, res) => {
@@ -25,7 +23,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Error fetching students' });
   }
 });
-
 
 // Obtener un estudiante por ID
 router.get('/:id', async (req, res) => {
@@ -52,4 +49,5 @@ router.put('/:id', async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+
 module.exports = router;

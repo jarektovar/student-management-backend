@@ -120,7 +120,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
             materia_id: course._id,
             estudiante_id: randomStudent._id
           });
-          course.cupos_materia--; // Reducir el número de cupos
+          course.cupos_materia--;
         }
       }
     }

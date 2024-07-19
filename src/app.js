@@ -23,6 +23,7 @@ const subjectRoutes = require('./routes/subjects');
 const courseRoutes = require('./routes/courses');
 const enrollmentRoutes = require('./routes/enrollments');
 const authRoutes = require('./routes/auth');
+const programRoutes = require('./routes/programs'); 
 
 // Usar rutas
 app.use('/api/estudiantes', studentRoutes);
@@ -30,6 +31,7 @@ app.use('/api/asignaturas', subjectRoutes);
 app.use('/api/materias', courseRoutes);
 app.use('/api/inscripciones', enrollmentRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/programas', programRoutes); 
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
