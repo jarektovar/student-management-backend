@@ -1,3 +1,4 @@
+// routes/students.js
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/student');
@@ -10,7 +11,8 @@ router.get('/', async (req, res) => {
   try {
     const students = await Student.find()
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .select('-photo_estudiante'); 
     const totalStudents = await Student.countDocuments();
 
     res.json({
@@ -23,6 +25,22 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Error fetching students' });
   }
 });
+
+// Obtener la foto de un estudiante por ID
+router.get('/:id/photo', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id).select('photo_estudiante');
+    if (!student) {
+      return res.status(404).send('Student not found');
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+module.exports = router;
+
 
 // Obtener un estudiante por ID
 router.get('/:id', async (req, res) => {
