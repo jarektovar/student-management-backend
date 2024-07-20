@@ -17,9 +17,11 @@ authSchema.pre('save', async function(next) {
 });
 
 authSchema.methods.generateAuthToken = function() {
-  console.log('JWT_SECRET:', process.env.JWT_SECRET);
-  return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ _id: this._id, role: this.role, estudiante_id: this.estudiante_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  console.log('Generated JWT:', token);
+  return token;
 };
+
 
 const Auth = mongoose.model('Auth', authSchema);
 module.exports = Auth;
