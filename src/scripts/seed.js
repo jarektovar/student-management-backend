@@ -15,18 +15,25 @@ const Enrollment = require('../models/enrollment');
 const Faculty = require('../models/faculty');
 const Program = require('../models/program');
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+})
   .then(async () => {
     console.log('Connected to MongoDB');
 
     // Limpiar datos anteriores
-    await Student.deleteMany({});
-    await Subject.deleteMany({});
-    await Course.deleteMany({});
-    await Enrollment.deleteMany({});
-    await Faculty.deleteMany({});
-    await Program.deleteMany({});
-    await Auth.deleteMany({});
+    await Promise.all([
+      Student.deleteMany({}),
+      Subject.deleteMany({}),
+      Course.deleteMany({}),
+      Enrollment.deleteMany({}),
+      Faculty.deleteMany({}),
+      Program.deleteMany({}),
+      Auth.deleteMany({})
+    ]);
     console.log('Previous data cleared');
 
     // Datos de ejemplo
@@ -45,11 +52,11 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     console.log('Programs inserted');
 
     const subjects = [
-      { nombre_asignatura: 'Cátedra Universidad y Entorno', programa_id: insertedPrograms[0]._id },
-      { nombre_asignatura: 'Matemáticas Discretas', programa_id: insertedPrograms[0]._id },
-      { nombre_asignatura: 'Estructuras de Datos', programa_id: insertedPrograms[0]._id },
-      { nombre_asignatura: 'Bases de Datos', programa_id: insertedPrograms[0]._id },
-      { nombre_asignatura: 'Redes de Computadoras', programa_id: insertedPrograms[0]._id }
+      { nombre_asignatura: 'Cátedra Universidad y Entorno' },
+      { nombre_asignatura: 'Matemáticas Discretas' },
+      { nombre_asignatura: 'Estructuras de Datos' },
+      { nombre_asignatura: 'Bases de Datos' },
+      { nombre_asignatura: 'Redes de Computadoras' }
     ];
     const insertedSubjects = await Subject.insertMany(subjects);
     console.log('Subjects inserted');
@@ -128,7 +135,6 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     await Enrollment.insertMany(enrollments);
     console.log('Enrollments created');
 
-    // Crear usuarios con credenciales de administrador y estudiante
     console.log('Creating users...');
     const users = [
       { hash_usuario: 'admin', hash_password: await bcrypt.hash('admin', 10), role: 'admin' },
@@ -149,4 +155,5 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   })
   .catch(err => {
     console.error('Could not connect to MongoDB:', err);
+    mongoose.connection.close(); 
   });

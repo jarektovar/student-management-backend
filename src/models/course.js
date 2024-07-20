@@ -6,5 +6,8 @@ const courseSchema = new mongoose.Schema({
   cupos_materia: { type: Number, required: true }
 });
 
+courseSchema.index({ asignatura_id: 1 });
+courseSchema.index({ nombre: 1 });
+
 const Course = mongoose.model('Course', courseSchema);
 module.exports = Course;
