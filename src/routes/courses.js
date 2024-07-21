@@ -4,7 +4,7 @@ const auth = require('../middlewares/auth');
 const roles = require('../middlewares/roles');
 const Course = require('../models/course');
 const Enrollment = require('../models/enrollment');
-const Student = require('../models/student'); // Importa el modelo de Student
+const Student = require('../models/student'); 
 
 router.get('/', auth, roles('admin'), async (req, res) => {
   const { pageNumber = 1, pageSize = 10 } = req.query;
@@ -36,8 +36,10 @@ router.get('/', auth, roles('admin'), async (req, res) => {
       })
     );
 
+    console.log('Courses with enrollments:', coursesWithEnrollments); 
     res.json({ courses: coursesWithEnrollments, totalCourses });
   } catch (error) {
+    console.error('Error fetching courses:', error);
     res.status(500).send(error.message);
   }
 });
