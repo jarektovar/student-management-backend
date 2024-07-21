@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Student = require('../models/student');
 
-
-
 // Obtener estudiantes con paginación y filtros
 router.get('/', async (req, res) => {
   const page = parseInt(req.query.pageNumber) || 1;
@@ -36,8 +34,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Error fetching students' });
   }
 });
-
-
 
 // Obtener la foto de un estudiante por ID
 router.get('/:id/photo', async (req, res) => {
@@ -82,6 +78,11 @@ router.put('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { nombre_name, apellido, numero_documento, programa_id, photo_estudiante } = req.body;
+
+    if (!nombre_name || !apellido || !numero_documento || !programa_id || !photo_estudiante) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
     const newStudent = new Student({
       nombre_name,
       apellido,
@@ -94,7 +95,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(newStudent);
   } catch (error) {
     console.error('Error registering student:', error);
-    res.status(500).json({ error: 'Error registering student' });
+    res.status(500).json({ error: error.message });
   }
 });
 

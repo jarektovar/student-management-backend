@@ -142,7 +142,7 @@ mongoose.connect(process.env.MONGO_URI, {
     ];
 
     const additionalStudents = await Promise.all(insertedStudents.slice(1, 1000).map(async (student) => ({
-      hash_usuario: `student${student._id}`,
+      hash_usuario: `${student.numero_documento}`,
       hash_password: await bcrypt.hash('password', 10),
       role: 'student',
       estudiante_id: student._id
