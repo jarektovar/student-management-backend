@@ -1,6 +1,14 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const Student = require('../models/student');
+
+// Configuración de multer para subir archivos
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fieldSize: 25 * 1024 * 1024 } // 25 MB para el tamaño máximo de campo
+});
 
 // Obtener estudiantes con paginación y filtros
 router.get('/', async (req, res) => {
@@ -31,6 +39,7 @@ router.get('/', async (req, res) => {
       currentPage: page
     });
   } catch (err) {
+    console.error('Error fetching students:', err);
     res.status(500).json({ error: 'Error fetching students' });
   }
 });
@@ -44,6 +53,7 @@ router.get('/:id/photo', async (req, res) => {
     }
     res.json(student);
   } catch (error) {
+    console.error('Error fetching student photo:', error);
     res.status(500).send(error.message);
   }
 });
@@ -57,27 +67,36 @@ router.get('/:id', async (req, res) => {
     }
     res.json(student);
   } catch (error) {
+    console.error('Error fetching student:', error);
     res.status(500).send(error.message);
   }
 });
 
 // Actualizar un estudiante por ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('photo_estudiante'), async (req, res) => {
   try {
-    const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.photo_estudiante = req.file.buffer.toString('base64');
+    }
+    const student = await Student.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!student) {
       return res.status(404).send('Student not found');
     }
     res.json(student);
   } catch (error) {
+    console.error('Error updating student:', error);
     res.status(500).send(error.message);
   }
 });
 
 // Crear un nuevo estudiante
-router.post('/', async (req, res) => {
+router.post('/', upload.single('photo_estudiante'), async (req, res) => {
   try {
-    const { nombre_name, apellido, numero_documento, programa_id, photo_estudiante } = req.body;
+    console.log('Request body:', req.body);
+    console.log('File:', req.file);
+    const { nombre_name, apellido, numero_documento, programa_id } = req.body;
+    const photo_estudiante = req.file ? req.file.buffer.toString('base64') : null;
     const newStudent = new Student({
       nombre_name,
       apellido,
@@ -91,6 +110,20 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error registering student:', error);
     res.status(500).json({ error: 'Error registering student' });
+  }
+});
+
+// Eliminar un estudiante por ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+    if (!student) {
+      return res.status(404).send('Student not found');
+    }
+    res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    res.status(500).send(error.message);
   }
 });
 
