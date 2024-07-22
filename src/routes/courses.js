@@ -6,7 +6,7 @@ const Course = require('../models/course');
 const Enrollment = require('../models/enrollment');
 const Student = require('../models/student'); 
 
-router.get('/', auth, roles('admin'), async (req, res) => {
+router.get('/', auth, async (req, res) => {
   const { pageNumber = 1, pageSize = 10 } = req.query;
   const skip = (pageNumber - 1) * pageSize;
 
