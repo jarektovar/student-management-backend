@@ -7,7 +7,7 @@ const Student = require('../models/student');
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
-  limits: { fieldSize: 25 * 1024 * 1024 } // 25 MB para el tamaño máximo de campo
+  limits: { fieldSize: 25 * 1024 * 1024 } 
 });
 
 // Obtener estudiantes con paginación y filtros
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   const page = parseInt(req.query.pageNumber) || 1;
   const limit = parseInt(req.query.pageSize) || 10;
   const searchQuery = req.query.searchQuery || '';
-  const sortOption = req.query.sortOption || 'nombre_name';
+  const sortOption = req.query.sortOption || '';
 
   try {
     const query = {
@@ -25,12 +25,21 @@ router.get('/', async (req, res) => {
       ]
     };
 
-    const students = await Student.find(query)
-      .sort({ [sortOption]: 1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .select('-photo_estudiante');
+    console.log('Query:', query); 
+    console.log('Sort Option:', sortOption); 
+
+    const aggregationPipeline = [
+      { $match: query },
+      { $sort: sortOption ? { [sortOption]: 1 } : {} },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      { $project: { photo_estudiante: 0 } }
+    ];
+
+    const students = await Student.aggregate(aggregationPipeline).allowDiskUse(true);
     const totalStudents = await Student.countDocuments(query);
+
+    console.log('Students:', students); 
 
     res.json({
       students,

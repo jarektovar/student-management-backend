@@ -5,7 +5,7 @@ const Course = require('../models/course');
 const Student = require('../models/student');
 
 // Inscribir un estudiante en una materia
-router.post('/', async (req, res) => {
+router.post('/',  async (req, res) => {
   const { materia_id, estudiante_id } = req.body;
 
   try {
