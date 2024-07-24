@@ -3,9 +3,11 @@ const router = express.Router();
 const Enrollment = require('../models/enrollment');
 const Course = require('../models/course');
 const Student = require('../models/student');
+const auth = require('../middlewares/auth');
+const roles = require('../middlewares/roles');
 
 // Inscribir un estudiante en una materia
-router.post('/',  async (req, res) => {
+router.post('/admin-enroll', auth, roles('admin'), async (req, res) => {
   const { materia_id, estudiante_id } = req.body;
 
   try {
