@@ -69,28 +69,44 @@ mongoose.connect(process.env.MONGO_URI, {
       console.log(`Directory ${photoDirectory} does not exist. No photos will be added.`);
     }
 
-    const generatedDocuments = new Set();
-    const students = Array.from({ length: 20000 }, (_, index) => {
+    const specificStudentsData = [
+      { nombre_name: 'Santiago', apellido: 'Andrade Mesa', numero_documento: '1192763972' },
+      { nombre_name: 'Yesika Andrea', apellido: 'Rojas', numero_documento: '1002461807' },
+      { nombre_name: 'Andrés Santiago', apellido: 'Salamanca Naranjo', numero_documento: '1007751303' },
+      { nombre_name: 'José Daniel', apellido: 'Rivas', numero_documento: '1192716867' },
+      { nombre_name: 'Carlos David', apellido: 'Quintero Florez', numero_documento: '1057606256' },
+      { nombre_name: 'Jarek', apellido: 'Tovar Martinez', numero_documento: '1099207727' },
+      { nombre_name: 'Juan Sebastian', apellido: 'Montañez Chaparro', numero_documento: '1002550453' },
+      { nombre_name: 'Sergio Felipe', apellido: 'Santos Hernandez', numero_documento: '1002461971' }
+    ];
+
+    const generatedDocuments = new Set(specificStudentsData.map(student => student.numero_documento));
+    
+    const specificStudents = specificStudentsData.map(student => ({
+      nombre_name: student.nombre_name,
+      apellido: student.apellido,
+      numero_documento: student.numero_documento,
+      programa_id: insertedPrograms[0]._id,
+      photo_estudiante: '' // Sin foto para los estudiantes específicos
+    }));
+
+    const randomStudents = Array.from({ length: 20000 }, (_, index) => {
       let numero_documento;
       do {
         numero_documento = faker.number.int({ min: 1000000000, max: 9999999999 }).toString();
       } while (generatedDocuments.has(numero_documento));
       generatedDocuments.add(numero_documento);
 
-      let photoBase64 = '';
-      if (index < photoFiles.length) {
-        const photoPath = path.join(photoDirectory, photoFiles[index]);
-        photoBase64 = fs.readFileSync(photoPath, { encoding: 'base64' });
-      }
-
       return {
         nombre_name: faker.person.firstName(),
         apellido: faker.person.lastName(),
         numero_documento,
         programa_id: insertedPrograms[0]._id,
-        photo_estudiante: photoBase64
+        photo_estudiante: '' // Sin foto para los estudiantes aleatorios
       };
     });
+
+    const students = specificStudents.concat(randomStudents);
 
     console.log('Inserting students...');
     const insertedStudents = await Student.insertMany(students);
@@ -138,7 +154,7 @@ mongoose.connect(process.env.MONGO_URI, {
     console.log('Creating users...');
     const users = [
       { hash_usuario: 'admin', hash_password: await bcrypt.hash('admin', 10), role: 'admin' },
-      { hash_usuario: 'student1', hash_password: await bcrypt.hash('student1', 10), role: 'student', estudiante_id: insertedStudents[0]._id }
+      { hash_usuario: '1192763972', hash_password: await bcrypt.hash('password', 10), role: 'student', estudiante_id: insertedStudents[0]._id }
     ];
 
     const additionalStudents = await Promise.all(insertedStudents.slice(1, 1000).map(async (student) => ({
@@ -155,5 +171,5 @@ mongoose.connect(process.env.MONGO_URI, {
   })
   .catch(err => {
     console.error('Could not connect to MongoDB:', err);
-    mongoose.connection.close(); 
+    mongoose.connection.close();
   });
